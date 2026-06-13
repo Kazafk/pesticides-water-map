@@ -1,4 +1,4 @@
-name: Update pesticides data
+﻿name: Update pesticides data
 
 on:
   schedule:
@@ -8,6 +8,7 @@ on:
     branches: [master]
     paths:
       - 'pipeline/**'
+      - 'public/**'
       - '.github/workflows/update-data.yml'
 
 jobs:
