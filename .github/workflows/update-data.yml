@@ -33,7 +33,7 @@ jobs:
         run: python pipeline/compute_pesticides.py
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@de7a3b52866469b176e3c6b8d1b3950b1e68a61f
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
