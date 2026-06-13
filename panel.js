@@ -43,6 +43,23 @@ function _scoreColor(score) {
   return 'var(--red)';
 }
 
+// ── Concentration max vs seuil réglementaire ──────────────────────────────
+function _maxVsSeuil(maxUgL) {
+  // max_ug_l arrondi à 4 décimales : si 0, la vraie valeur est < 0.00005 µg/L
+  if (maxUgL === 0) {
+    return `&lt;&nbsp;0,0001&nbsp;µg/L`
+      + ` <span class="mol-vs-seuil mol-vs-ok">(&lt;&nbsp;0,1&nbsp;% du seuil)</span>`;
+  }
+  const pct = (maxUgL / LIMIT_UG_L) * 100;
+  if (maxUgL <= LIMIT_UG_L) {
+    return `max&nbsp;${maxUgL.toFixed(4)}&nbsp;µg/L`
+      + ` <span class="mol-vs-seuil mol-vs-ok">(${pct.toFixed(1)}&nbsp;% du seuil)</span>`;
+  }
+  const ratio = maxUgL / LIMIT_UG_L;
+  return `max&nbsp;${maxUgL.toFixed(4)}&nbsp;µg/L`
+    + ` <span class="mol-vs-seuil mol-vs-breach">(${ratio.toFixed(1)}×&nbsp;le seuil)</span>`;
+}
+
 // ── Liste molécules groupée par niveau de danger ───────────────────────────
 function _sortedMolEntries(molEntries) {
   return molEntries.slice().sort(([codeA], [codeB]) => {
@@ -73,7 +90,7 @@ function _renderMoleculeList(molEntries, activeMol, clickable) {
       const meta    = MOLECULE_META[code] ?? {};
       const isActive = clickable && code === activeMol;
       const breach   = mol.max_ug_l > LIMIT_UG_L;
-      const maxStr   = mol.max_ug_l > 0 ? `max ${mol.max_ug_l.toFixed(4)} µg/L` : 'traces';
+      const maxStr   = _maxVsSeuil(mol.max_ug_l);
       const depStr   = breach
         ? `<span class="mol-breach-badge">⚠ ${mol.depassements} dép.</span>`
         : '';
@@ -118,9 +135,15 @@ function _moleculeDetail(mol) {
         </div>
         <div>
           <div style="font-size:16px;font-weight:bold;color:${breach ? 'var(--red)' : 'var(--text)'}">
-            ${mol.max_ug_l.toFixed(4)} µg/L
+            ${mol.max_ug_l === 0 ? '&lt;&nbsp;0,0001' : mol.max_ug_l.toFixed(4)} µg/L
           </div>
-          <div style="color:var(--muted);font-size:10px">max mesuré ${breach ? '⚠ &gt; ' + LIMIT_UG_L : '≤ ' + LIMIT_UG_L}</div>
+          <div style="color:var(--muted);font-size:10px">
+            max mesuré · seuil&nbsp;${LIMIT_UG_L}&nbsp;µg/L
+            ${breach
+              ? `<span style="color:var(--red)">⚠ ${(mol.max_ug_l / LIMIT_UG_L).toFixed(1)}×</span>`
+              : `<span style="color:var(--green)">${((mol.max_ug_l / LIMIT_UG_L) * 100).toFixed(1)}&nbsp;%</span>`
+            }
+          </div>
         </div>
         <div>
           <div style="font-size:16px">${mol.n}</div>
