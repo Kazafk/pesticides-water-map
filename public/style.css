@@ -347,6 +347,10 @@ body {
   font-weight: bold;
 }
 
+.mol-vs-seuil { font-size: 9px; white-space: nowrap; }
+.mol-vs-ok     { color: var(--muted); }
+.mol-vs-breach { color: var(--red); font-weight: bold; }
+
 .mol-ext-link {
   font-size: 10px;
   color: var(--green);
