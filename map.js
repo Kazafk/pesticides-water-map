@@ -16,7 +16,7 @@ function conformiteColor(score) {
 
 function empreinteColor(n) {
   if (n == null) return '#2d2d2d';
-  if (n === 0)   return '#374151';
+  if (n === 0)   return '#0e7490'; // teal — testé, aucune molécule détectée
   if (n <= 3)    return '#7e57c2';
   if (n <= 6)    return '#9c27b0';
   if (n <= 10)   return '#6a1b9a';
@@ -358,7 +358,7 @@ function _updateLegend() {
         <div class="legend-item"><span class="dot" style="background:#f1c40f"></span><div class="legend-label">95–99 %</div></div>
         <div class="legend-item"><span class="dot" style="background:#f39c12"></span><div class="legend-label">90–95 %</div></div>
         <div class="legend-item"><span class="dot" style="background:#e74c3c"></span><div class="legend-label">&lt; 90 %</div></div>` : `
-        <div class="legend-item"><span class="dot" style="background:#374151"></span><div class="legend-label">0 molécule</div></div>
+        <div class="legend-item"><span class="dot" style="background:#0e7490"></span><div class="legend-label">0 molécule — testé, aucune trace</div></div>
         <div class="legend-item"><span class="dot" style="background:#7e57c2"></span><div class="legend-label">1–3</div></div>
         <div class="legend-item"><span class="dot" style="background:#9c27b0"></span><div class="legend-label">4–6</div></div>
         <div class="legend-item"><span class="dot" style="background:#4a148c"></span><div class="legend-label">7+</div></div>`}`;
