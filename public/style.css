@@ -109,6 +109,7 @@ body {
   padding: 4px 7px;
 }
 .btn-icon:hover { background: var(--border); }
+.btn-icon.active { background: var(--green); color: #000; border-color: var(--green); font-weight: bold; }
 
 #data-date { color: var(--muted); font-size: 11px; }
 

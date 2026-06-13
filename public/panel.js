@@ -206,6 +206,69 @@ export function clearPanel() {
   _currentCommune = null;
 }
 
+// ── Panel département ──────────────────────────────────────────────────────
+export function updateDeptPanel(dept) {
+  _currentCommune = null;
+  const el    = document.getElementById('panel-content');
+  const empty = document.getElementById('panel-empty');
+  el.hidden    = false;
+  empty.hidden = true;
+
+  const panel = document.getElementById('panel');
+  if (!panel.classList.contains('sheet-half') && !panel.classList.contains('sheet-full')) {
+    panel.classList.add('sheet-half');
+  }
+
+  const conformiteStr = dept.score_conformite != null
+    ? dept.score_conformite.toFixed(1) + ' %' : '—';
+  const conformiteColor = dept.score_conformite == null ? 'var(--muted)'
+    : dept.score_conformite >= 100 ? 'var(--green)'
+    : dept.score_conformite >= 95  ? 'var(--yellow)'
+    : dept.score_conformite >= 90  ? 'var(--orange)'
+    : 'var(--red)';
+
+  const topMolHtml = dept.top_molecules?.length
+    ? dept.top_molecules.map(m => {
+        const meta = MOLECULE_META[m.code];
+        const dangerColor = meta ? DANGER_CONFIG[meta.danger]?.color : 'var(--muted)';
+        return `<div style="display:flex;align-items:baseline;gap:8px;padding:3px 0;border-bottom:1px solid var(--border)">
+          <span style="color:${dangerColor};font-size:10px">●</span>
+          <span style="font-size:11px;flex:1">${_esc(m.label)}</span>
+          <span style="color:var(--muted);font-size:10px">${m.count} communes</span>
+          ${m.depassements > 0 ? `<span style="color:var(--red);font-size:10px">⚠ ${m.depassements}</span>` : ''}
+        </div>`;
+      }).join('')
+    : '<div style="color:var(--muted);font-size:11px">Aucune donnée</div>';
+
+  el.innerHTML = `
+    <div style="margin-bottom:12px">
+      <div class="panel-commune-name">Département ${_esc(dept.dept)}</div>
+      <div class="panel-commune-sub">${dept.n_communes} communes avec mesures · ${dept.n_communes_total} total</div>
+    </div>
+
+    <div style="display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap">
+      <div>
+        <div class="panel-score-big" style="color:${conformiteColor}">${conformiteStr}</div>
+        <div style="color:var(--muted);font-size:10px">conformité médiane</div>
+      </div>
+      <div>
+        <div class="panel-score-big">${dept.n_molecules_detected ?? '—'}</div>
+        <div style="color:var(--muted);font-size:10px">molécules médiane</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:16px;margin-bottom:14px;font-size:11px;color:var(--muted)">
+      <div>${dept.n_prelevements.toLocaleString('fr-FR')} prélèvements</div>
+      <div>${dept.n_depassements.toLocaleString('fr-FR')} dépassements</div>
+    </div>
+
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">
+      Top 5 molécules détectées
+    </div>
+    ${topMolHtml}
+  `;
+}
+
 function _render() {
   if (!_currentCommune) return;
   const commune = _currentCommune;
