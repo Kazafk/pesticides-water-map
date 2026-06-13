@@ -1,0 +1,344 @@
+:root {
+  --bg:      #0d1117;
+  --surface: #161b22;
+  --border:  #21262d;
+  --text:    #c9d1d9;
+  --muted:   #8b949e;
+  --green:   #2ecc71;
+  --yellow:  #f1c40f;
+  --orange:  #f39c12;
+  --red:     #e74c3c;
+  --violet:  #9b59b6;
+  --nodata:  #2d2d2d;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#app { display: flex; flex-direction: column; height: 100vh; }
+
+/* ── Topbar ─────────────────────────────────────────── */
+#topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 10;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+#brand { display: flex; align-items: center; gap: 10px; }
+#brand-title    { color: var(--green); font-weight: bold; }
+#brand-subtitle { color: var(--muted); font-size: 11px; }
+#controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* ── Mode toggle ─────────────────────────────────────── */
+#mode-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.mode-btn {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 4px 10px;
+  transition: background .15s, color .15s;
+}
+.mode-btn.active {
+  background: var(--green);
+  color: #000;
+  font-weight: bold;
+}
+.mode-btn:not(.active):hover { background: var(--border); color: var(--text); }
+
+/* ── Recherche ───────────────────────────────────────── */
+#search-wrapper { position: relative; }
+#search {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  padding: 4px 8px;
+  font-size: 11px;
+  width: 200px;
+}
+#search:focus { outline: none; border-color: var(--green); }
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-top: 2px;
+  list-style: none;
+  z-index: 100;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.search-dropdown li {
+  padding: 6px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+}
+.search-dropdown li:hover { background: var(--border); }
+
+.btn-icon {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 7px;
+}
+.btn-icon:hover { background: var(--border); }
+
+#data-date { color: var(--muted); font-size: 11px; }
+
+/* ── Layout ──────────────────────────────────────────── */
+#main-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+#map-container { position: relative; flex: 1; }
+#map { width: 100%; height: 100%; }
+
+/* ── Légende ─────────────────────────────────────────── */
+#legend {
+  position: absolute;
+  bottom: 24px;
+  left: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 11px;
+  z-index: 5;
+  min-width: 160px;
+}
+.legend-title { color: var(--muted); font-size: 10px; text-transform: uppercase; margin-bottom: 6px; }
+.legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-nodata { background: var(--nodata); border: 1px solid var(--border); }
+.dot-fallback {
+  background: transparent;
+  border: 2px dashed var(--muted);
+}
+.legend-label { color: var(--text); }
+.legend-sub   { color: var(--muted); font-size: 10px; }
+
+/* ── Tooltip ─────────────────────────────────────────── */
+#map-tooltip {
+  position: absolute;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 11px;
+  pointer-events: none;
+  display: none;
+  z-index: 20;
+  white-space: nowrap;
+}
+
+/* ── Panel ───────────────────────────────────────────── */
+#panel {
+  width: 320px;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+#panel-empty {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  padding: 40px 20px;
+}
+#panel-content { padding: 14px; }
+
+#sheet-handle { display: none; }
+
+.panel-commune-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--text);
+}
+.panel-commune-sub {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 2px;
+  margin-bottom: 10px;
+}
+.panel-score-big {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.panel-fallback-note {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+}
+
+/* ── Tabs du panel ───────────────────────────────────── */
+.panel-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.panel-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 6px 12px;
+  margin-bottom: -1px;
+}
+.panel-tab.active {
+  border-bottom-color: var(--green);
+  color: var(--text);
+}
+
+/* ── Pills molécules ─────────────────────────────────── */
+.season-pills {
+  display: flex;
+  gap: 5px;
+  padding: 8px 0 4px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.season-pills::-webkit-scrollbar { display: none; }
+.season-pill {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 3px 9px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: border-color .15s, color .15s;
+}
+.season-pill:hover { border-color: var(--green); color: var(--text); }
+.season-pill.active { background: var(--green); border-color: var(--green); color: #000; font-weight: bold; }
+.season-pill.breach { border-color: var(--red); }
+.season-pill.breach.active { background: var(--red); border-color: var(--red); }
+
+/* ── Tableau empreinte ───────────────────────────────── */
+.molecule-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  margin-top: 8px;
+}
+.molecule-table th {
+  color: var(--muted);
+  font-weight: normal;
+  padding: 4px 6px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.molecule-table td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+.molecule-table .breach-cell { color: var(--red); font-weight: bold; }
+.molecule-table .ok-cell     { color: var(--muted); }
+
+/* ── Chart molécule ──────────────────────────────────── */
+.chart-wrap { margin: 10px 0; }
+.chart-stats { color: var(--muted); font-size: 10px; margin-top: 4px; }
+
+/* ── Mobile bottom sheet ─────────────────────────────── */
+@media (max-width: 700px) {
+  #main-layout { flex-direction: column; position: relative; }
+  #panel {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    width: 100%;
+    height: 44px;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: 14px 14px 0 0;
+    overflow: hidden;
+    transition: height .3s ease;
+    z-index: 30;
+  }
+  #panel.sheet-half { height: 50vh; }
+  #panel.sheet-full { height: 92vh; }
+  #sheet-handle {
+    display: block;
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 8px auto 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  #panel-content { overflow-y: auto; flex: 1; }
+  #panel { display: flex; flex-direction: column; }
+}
+
+/* ── Onboarding ──────────────────────────────────────── */
+#onboarding-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.6);
+  z-index: 200;
+}
+#onboarding-modal {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+  width: min(480px, 90vw);
+  z-index: 201;
+}
+#onboarding-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+}
+#onboarding-logo { font-size: 32px; }
+#onboarding-title { font-size: 18px; font-weight: bold; color: var(--green); }
+#onboarding-sub   { color: var(--muted); font-size: 12px; }
+#onboarding-intro { color: var(--text); line-height: 1.5; margin-bottom: 16px; font-size: 13px; }
+.ob-score-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12px; }
+.ob-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+#onboarding-hint { color: var(--muted); font-size: 11px; margin: 12px 0; }
+#onboarding-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+#btn-onboarding-close {
+  background: var(--green); border: none; border-radius: 6px;
+  color: #000; cursor: pointer; font-size: 13px; font-weight: bold; padding: 8px 20px;
+}

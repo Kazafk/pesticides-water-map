@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pesticides Water Map — Eau du robinet en France</title>
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Onboarding -->
+  <div id="onboarding-overlay" hidden></div>
+  <div id="onboarding-modal" hidden>
+    <div id="onboarding-header">
+      <span id="onboarding-logo">🌿</span>
+      <div>
+        <div id="onboarding-title">Pesticides Water Map</div>
+        <div id="onboarding-sub">Pesticides dans l'eau du robinet — France</div>
+      </div>
+    </div>
+    <p id="onboarding-intro">
+      Cette carte visualise la présence de pesticides dans l'eau du robinet
+      de <strong>~35 000 communes françaises</strong> sur les 3 dernières années,
+      à partir des données officielles du contrôle sanitaire.
+    </p>
+    <div id="onboarding-scores">
+      <div class="ob-score-row">
+        <span class="ob-dot" style="background:var(--green)"></span>
+        <div><strong>Conforme 100 %</strong> — Aucun dépassement du seuil de 0,1 µg/L</div>
+      </div>
+      <div class="ob-score-row">
+        <span class="ob-dot" style="background:var(--yellow)"></span>
+        <div><strong>Conforme 95–99 %</strong> — Dépassements rares</div>
+      </div>
+      <div class="ob-score-row">
+        <span class="ob-dot" style="background:var(--orange)"></span>
+        <div><strong>Conforme 90–95 %</strong> — Dépassements occasionnels</div>
+      </div>
+      <div class="ob-score-row">
+        <span class="ob-dot" style="background:var(--red)"></span>
+        <div><strong>Conforme &lt; 90 %</strong> — Dépassements fréquents</div>
+      </div>
+    </div>
+    <p id="onboarding-hint">Cliquez sur une commune ou cherchez votre ville.</p>
+    <div id="onboarding-actions">
+      <button id="btn-onboarding-close">Commencer</button>
+    </div>
+  </div>
+
+  <div id="app">
+    <header id="topbar">
+      <div id="brand">
+        <span id="brand-title">🌿 Pesticides Water Map</span>
+        <span id="brand-subtitle">Eau du robinet — France</span>
+      </div>
+      <div id="controls">
+        <div id="mode-toggle">
+          <button class="mode-btn active" data-mode="conformite">Conformité %</button>
+          <button class="mode-btn" data-mode="empreinte">Empreinte</button>
+        </div>
+        <div id="search-wrapper">
+          <input id="search" type="text" placeholder="🔍 Commune ou département..." autocomplete="off">
+          <ul id="search-dropdown" class="search-dropdown" hidden></ul>
+        </div>
+        <button id="btn-home" class="btn-icon" title="Vue France entière">🏠</button>
+        <button id="btn-locate" class="btn-icon" title="Me localiser">📍</button>
+        <span id="data-date">Chargement…</span>
+      </div>
+    </header>
+
+    <main id="main-layout">
+      <div id="map-container">
+        <div id="map"></div>
+        <div id="map-tooltip"></div>
+        <div id="legend" data-mode="conformite"></div>
+      </div>
+      <div id="panel">
+        <div id="sheet-handle"></div>
+        <div id="panel-empty">Cliquez sur une commune pour voir le détail</div>
+        <div id="panel-content" hidden></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://unpkg.com/maplibre-gl@4/dist/maplibre-gl.js"></script>
+  <script type="module" src="map.js"></script>
+</body>
+</html>
