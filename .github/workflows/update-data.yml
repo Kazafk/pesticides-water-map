@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 6 * * 1'   # Lundi 6h UTC
   workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'pipeline/**'
+      - '.github/workflows/update-data.yml'
 
 jobs:
   update:
