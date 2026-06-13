@@ -280,6 +280,91 @@ body {
 .chart-wrap { margin: 10px 0; }
 .chart-stats { color: var(--muted); font-size: 10px; margin-top: 4px; }
 
+/* ── Liste molécules groupée ─────────────────────────── */
+.mol-list { margin-top: 4px; }
+
+.mol-group { margin-bottom: 10px; }
+
+.mol-group-header {
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 4px 0 4px 2px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2px;
+}
+
+.mol-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 6px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  margin-bottom: 2px;
+  transition: background .12s, border-color .12s;
+}
+.mol-row[data-code] { cursor: pointer; }
+.mol-row[data-code]:hover { background: var(--bg); border-color: var(--border); }
+.mol-row-active { background: var(--bg) !important; border-color: var(--green) !important; }
+.mol-row-breach { border-left: 2px solid var(--red); }
+.mol-row-active.mol-row-breach { border-color: var(--red) !important; }
+
+.mol-danger-dot { font-size: 10px; margin-top: 3px; flex-shrink: 0; }
+
+.mol-row-body { flex: 1; min-width: 0; }
+
+.mol-row-top {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mol-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.mol-note {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 1px;
+  line-height: 1.35;
+}
+
+.mol-stats {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.mol-breach-badge {
+  color: var(--red);
+  font-weight: bold;
+}
+
+.mol-ext-link {
+  font-size: 10px;
+  color: var(--green);
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 0 2px;
+  opacity: .8;
+}
+.mol-ext-link:hover { opacity: 1; text-decoration: underline; }
+
+.mol-detail-box {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+
 /* ── Mobile bottom sheet ─────────────────────────────── */
 @media (max-width: 700px) {
   #main-layout { flex-direction: column; position: relative; }

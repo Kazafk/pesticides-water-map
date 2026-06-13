@@ -1,5 +1,34 @@
 const LIMIT_UG_L = 0.1;
 
+// Métadonnées réglementaires par code SANDRE
+// danger: 3=haute préoccupation, 2=modérée, 1=sous surveillance
+// url: fiche PubChem (NIH) — source ouverte et stable
+const MOLECULE_META = {
+  "1107": { danger: 3, note: "Interdit UE 2004 · perturbateur endocrinien avéré", url: "https://pubchem.ncbi.nlm.nih.gov/compound/2256" },
+  "1108": { danger: 2, note: "Métabolite atrazine · activité perturbatrice endocrinienne", url: "https://pubchem.ncbi.nlm.nih.gov/compound/27681" },
+  "1113": { danger: 1, note: "Autorisé · faible toxicité relative", url: "https://pubchem.ncbi.nlm.nih.gov/compound/2327" },
+  "1129": { danger: 3, note: "Interdit UE 2010 · mutagène · reprotoxique Cat. 1B", url: "https://pubchem.ncbi.nlm.nih.gov/compound/25429" },
+  "1177": { danger: 2, note: "Cancérogène suspecté · reprotoxique Cat. 2", url: "https://pubchem.ncbi.nlm.nih.gov/compound/3120" },
+  "1208": { danger: 2, note: "Interdit UE 2016 · reprotoxique suspecté", url: "https://pubchem.ncbi.nlm.nih.gov/compound/39214" },
+  "1209": { danger: 3, note: "Interdit UE 2017 · perturbateur endocrinien", url: "https://pubchem.ncbi.nlm.nih.gov/compound/4084" },
+  "1473": { danger: 3, note: "Interdit UE 2019 · cancérogène probable Cat. 2", url: "https://pubchem.ncbi.nlm.nih.gov/compound/15217" },
+  "1506": { danger: 2, note: "Cancérogène probable CIRC groupe 2A", url: "https://pubchem.ncbi.nlm.nih.gov/compound/3496" },
+  "1667": { danger: 1, note: "Usage restreint · hépatotoxique", url: "https://pubchem.ncbi.nlm.nih.gov/compound/34656" },
+  "1877": { danger: 2, note: "Néonicotinoïde · interdit en plein air UE 2018 · toxique pollinisateurs", url: "https://pubchem.ncbi.nlm.nih.gov/compound/86418" },
+  "1907": { danger: 2, note: "Métabolite principal du glyphosate · persistant dans les eaux", url: "https://pubchem.ncbi.nlm.nih.gov/compound/70289" },
+  "2974": { danger: 2, note: "Cancérogène suspecté · métabolites persistants dans les eaux souterraines", url: "https://pubchem.ncbi.nlm.nih.gov/compound/77295" },
+  "6894": { danger: 1, note: "Métabolite métazachlore · sous surveillance réglementaire", url: "https://pubchem.ncbi.nlm.nih.gov/compound/91701" },
+  "6895": { danger: 1, note: "Métabolite métazachlore · sous surveillance réglementaire", url: "https://pubchem.ncbi.nlm.nih.gov/compound/91701" },
+  "7717": { danger: 3, note: "Métabolite chlorothalonil · mêmes préoccupations cancérogènes", url: "https://pubchem.ncbi.nlm.nih.gov/compound/15217" },
+  "8865": { danger: 3, note: "Métabolite chlorothalonil · mêmes préoccupations cancérogènes", url: "https://pubchem.ncbi.nlm.nih.gov/compound/15217" },
+};
+
+const DANGER_CONFIG = {
+  3: { label: "Haute préoccupation", color: "var(--red)" },
+  2: { label: "Préoccupation modérée", color: "var(--orange)" },
+  1: { label: "Sous surveillance", color: "var(--yellow)" },
+};
+
 function _esc(str) {
   return String(str ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -14,16 +43,74 @@ function _scoreColor(score) {
   return 'var(--red)';
 }
 
-// ── Détail molécule ────────────────────────────────────────────────────────
+// ── Liste molécules groupée par niveau de danger ───────────────────────────
+function _sortedMolEntries(molEntries) {
+  return molEntries.slice().sort(([codeA], [codeB]) => {
+    const da = MOLECULE_META[codeA]?.danger ?? 1;
+    const db = MOLECULE_META[codeB]?.danger ?? 1;
+    if (db !== da) return db - da;
+    return (MOLECULE_META[codeA]?.label ?? codeA).localeCompare(MOLECULE_META[codeB]?.label ?? codeB, 'fr');
+  });
+}
+
+function _renderMoleculeList(molEntries, activeMol, clickable) {
+  if (molEntries.length === 0) {
+    return '<div style="color:var(--muted);font-size:11px;padding:8px 0">Aucune molécule prioritaire mesurée</div>';
+  }
+
+  const sorted = _sortedMolEntries(molEntries);
+
+  // Grouper par niveau de danger
+  const groups = {};
+  for (const entry of sorted) {
+    const d = MOLECULE_META[entry[0]]?.danger ?? 1;
+    (groups[d] = groups[d] ?? []).push(entry);
+  }
+
+  return [3, 2, 1].filter(d => groups[d]).map(d => {
+    const cfg = DANGER_CONFIG[d];
+    const rows = groups[d].map(([code, mol]) => {
+      const meta    = MOLECULE_META[code] ?? {};
+      const isActive = clickable && code === activeMol;
+      const breach   = mol.max_ug_l > LIMIT_UG_L;
+      const maxStr   = mol.max_ug_l > 0 ? `max ${mol.max_ug_l.toFixed(4)} µg/L` : 'traces';
+      const depStr   = breach
+        ? `<span class="mol-breach-badge">⚠ ${mol.depassements} dép.</span>`
+        : '';
+      const link = meta.url
+        ? `<a href="${_esc(meta.url)}" target="_blank" rel="noopener" class="mol-ext-link"
+              title="Fiche PubChem (NIH)" onclick="event.stopPropagation()">↗ fiche</a>`
+        : '';
+      const codeAttr = clickable ? ` data-code="${code}"` : '';
+      return `
+        <div class="mol-row${isActive ? ' mol-row-active' : ''}${breach ? ' mol-row-breach' : ''}" ${codeAttr}>
+          <div class="mol-danger-dot" style="color:${cfg.color}">●</div>
+          <div class="mol-row-body">
+            <div class="mol-row-top">
+              <span class="mol-name">${_esc(mol.label)}</span>
+              ${link}
+            </div>
+            <div class="mol-note">${_esc(meta.note ?? '')}</div>
+            <div class="mol-stats">${mol.n} prélèv. · ${maxStr} ${depStr}</div>
+          </div>
+        </div>`;
+    }).join('');
+    return `
+      <div class="mol-group">
+        <div class="mol-group-header" style="color:${cfg.color}">${cfg.label}</div>
+        ${rows}
+      </div>`;
+  }).join('');
+}
+
+// ── Détail molécule sélectionnée ───────────────────────────────────────────
 function _moleculeDetail(mol) {
-  if (!mol || mol.n === 0) return '<div class="chart-stats">Aucune mesure disponible</div>';
-
-  const score = 100 * (mol.n - mol.depassements) / mol.n;
-  const color = _scoreColor(score);
+  if (!mol || mol.n === 0) return '';
+  const score  = 100 * (mol.n - mol.depassements) / mol.n;
+  const color  = _scoreColor(score);
   const breach = mol.max_ug_l > LIMIT_UG_L;
-
   return `
-    <div class="chart-wrap">
+    <div class="mol-detail-box">
       <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
         <div>
           <div style="font-size:20px;font-weight:bold;color:${color}">${score.toFixed(1)} %</div>
@@ -48,17 +135,8 @@ function _renderConformite(commune, activeMol) {
   const { score_conformite: score, n_depassements, n_prelevements, molecules } = commune;
   const scoreStr   = score != null ? score.toFixed(1) + ' %' : '—';
   const scoreColor = _scoreColor(score);
-
   const molEntries = Object.entries(molecules || {});
-  const pills = molEntries.map(([code, mol]) => {
-    const hasBreach = mol.depassements > 0;
-    const isActive  = code === activeMol;
-    const cls = ['season-pill', hasBreach ? 'breach' : '', isActive ? 'active' : ''].filter(Boolean).join(' ');
-    return `<button class="${cls}" data-code="${code}">${_esc(mol.label)}</button>`;
-  }).join('');
-
   const activeMolData = activeMol ? molecules?.[activeMol] : null;
-  const chart = activeMolData ? _moleculeDetail(activeMolData) : '';
 
   return `
     <div style="margin-bottom:10px">
@@ -69,7 +147,11 @@ function _renderConformite(commune, activeMol) {
       </div>
     </div>
     ${molEntries.length > 0
-      ? `<div class="season-pills">${pills}</div>${chart}`
+      ? `<div style="font-size:10px;color:var(--muted);margin-bottom:4px">
+           Cliquez une molécule pour recolorer la carte
+         </div>
+         <div class="mol-list">${_renderMoleculeList(molEntries, activeMol, true)}</div>
+         ${activeMolData ? `<div style="font-size:11px;color:var(--muted);margin:8px 0 4px">${_esc(activeMolData.label)}</div>${_moleculeDetail(activeMolData)}` : ''}`
       : '<div style="color:var(--muted);font-size:11px">Aucune molécule prioritaire mesurée</div>'
     }`;
 }
@@ -79,18 +161,6 @@ function _renderEmpreinte(commune) {
   const { n_molecules_detected, molecules } = commune;
   const molEntries = Object.entries(molecules || {});
 
-  const rows = molEntries.map(([, mol]) => {
-    const breach = mol.max_ug_l > LIMIT_UG_L;
-    return `<tr>
-      <td>${_esc(mol.label)}</td>
-      <td style="text-align:right">${mol.n}</td>
-      <td style="text-align:right" class="${breach ? 'breach-cell' : 'ok-cell'}">
-        ${mol.max_ug_l.toFixed(4)}${breach ? ' ⚠' : ''}
-      </td>
-      <td style="text-align:right;color:var(--muted)">${LIMIT_UG_L}</td>
-    </tr>`;
-  }).join('');
-
   return `
     <div style="margin-bottom:10px">
       <div class="panel-score-big">${n_molecules_detected}</div>
@@ -99,11 +169,8 @@ function _renderEmpreinte(commune) {
         sur ${molEntries.length} analysées
       </div>
     </div>
-    ${rows
-      ? `<table class="molecule-table">
-          <thead><tr><th>Molécule</th><th>Mes.</th><th>Max µg/L</th><th>Seuil</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>`
+    ${molEntries.length > 0
+      ? `<div class="mol-list">${_renderMoleculeList(molEntries, null, false)}</div>`
       : '<div style="color:var(--muted);font-size:11px">Aucune molécule prioritaire mesurée</div>'
     }`;
 }
@@ -182,9 +249,10 @@ function _render() {
     });
   });
 
-  el.querySelectorAll('.season-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      const code = pill.dataset.code;
+  // Molécules cliquables dans l'onglet conformité
+  el.querySelectorAll('.mol-row[data-code]').forEach(row => {
+    row.addEventListener('click', () => {
+      const code = row.dataset.code;
       _activeMol = _activeMol === code ? null : code;
       _onMoleculeSelect?.(_activeMol);
       _render();
