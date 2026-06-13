@@ -160,18 +160,19 @@ def load_raw_data():
 # ── Coordonnées géographiques ─────────────────────────────────────────────────
 
 def fetch_coordinates():
-    """Retourne {insee: (lat, lon)} depuis geo.api.gouv.fr."""
-    _log("Récupération coordonnées...")
-    url = "https://geo.api.gouv.fr/communes?fields=code,centre&format=json&geometry=centre"
+    """Retourne {insee: {"lat", "lon", "nom"}} depuis geo.api.gouv.fr."""
+    _log("Récupération coordonnées communes...")
+    url = "https://geo.api.gouv.fr/communes?fields=code,nom,centre&format=json&geometry=centre"
     r = requests.get(url, timeout=60)
     r.raise_for_status()
     coords = {}
     for c in r.json():
         code = c.get("code", "")
+        nom = c.get("nom", "")
         centre = c.get("centre", {})
         if centre and centre.get("type") == "Point":
             lon, lat = centre["coordinates"]
-            coords[code] = (round(lat, 5), round(lon, 5))
+            coords[code] = {"lat": round(lat, 5), "lon": round(lon, 5), "nom": nom}
     _log(f"  {len(coords)} communes avec coordonnées")
     return coords
 
@@ -203,9 +204,12 @@ def compute_all(raw, coords):
                 "depassements": n_mol_dep,
                 "max_ug_l": round(max(vals), 4),
             }
-        lat, lon = coords.get(insee, (None, None))
+        geo = coords.get(insee, {})
+        lat = geo.get("lat")
+        lon = geo.get("lon")
+        nom = geo.get("nom") or data["_nom"] or insee
         communes.append({
-            "insee": insee, "nom": data["_nom"], "dept": _dept_from_insee(insee),
+            "insee": insee, "nom": nom, "dept": _dept_from_insee(insee),
             "lat": lat, "lon": lon, "dept_fallback": False,
             "n_prelevements": len(rows_all), "n_depassements": n_dep,
             "score_conformite": sc, "n_molecules_detected": n_det,
@@ -220,11 +224,12 @@ def apply_fallback(communes_with_data, coords):
     _log("Fallback département...")
     have = {c["insee"] for c in communes_with_data}
     fallbacks = []
-    for insee, (lat, lon) in coords.items():
+    for insee, geo in coords.items():
         if insee in have:
             continue
         dept = _dept_from_insee(insee)
-        stub = {"insee": insee, "nom": "", "dept": dept, "lat": lat, "lon": lon}
+        stub = {"insee": insee, "nom": geo.get("nom", ""), "dept": dept,
+                "lat": geo.get("lat"), "lon": geo.get("lon")}
         fallbacks.append(dept_median_fallback(stub, communes_with_data))
     _log(f"  {len(fallbacks)} communes en fallback")
     return communes_with_data + fallbacks
